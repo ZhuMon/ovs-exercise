@@ -2,7 +2,7 @@ PCAP_DIR = pcaps
 LOG_DIR = logs
 
 TOPO = topology.json
-CONTROLLER = simple_switch_13.py
+CONTROLLER = simple_switch_rest_13.py
 
 all: mininet
 
@@ -14,3 +14,4 @@ stop:
 
 clean: stop
 	rm -f *.pyc
+	sudo rm -rf __pycache__

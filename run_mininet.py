@@ -4,7 +4,6 @@ from mininet.net import Mininet
 from mininet.topo import Topo
 from mininet.cli import CLI
 from mininet.node import OVSKernelSwitch, Ryu, RemoteController
-from simple_switch_13 import SimpleSwitch13
 
 
 class MyTopo(Topo):
@@ -43,7 +42,7 @@ class MyTopo(Topo):
             host_num = int(host_name[1:])
             sw_num   = int(sw_name[1:])
 
-            self.addHost(host_name, ip = '10.0.%02d.%02d' % (sw_num, host_num), mac='08:00:00:00:%02d:%02d' % (sw_num, host_num))
+            self.addHost(host_name, ip = '10.0.%d.%d' % (sw_num, host_num), mac='08:00:00:00:%02d:%02d' % (sw_num, host_num))
             self.addLink(host_name, sw_name, port1 = 1, port2=sw_port)
 
         for link in switch_links:
@@ -91,6 +90,8 @@ if __name__ == "__main__":
     args = get_args()
     topo = MyTopo(args.topo)
     net = Mininet(topo, switch=OVSKernelSwitch, controller=Ryu("c0", args.controller))
+    # net = Mininet(topo, switch=OVSKernelSwitch, controller=RemoteController)
+
     net.start()
     for h in net.hosts:
         print("**********")
