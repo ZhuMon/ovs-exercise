@@ -14,8 +14,10 @@
 # limitations under the License.
 
 import json
+import matplotlib.pyplot as plt
+from base64 import b64encode
+from io import BytesIO
 
-import simple_switch_13
 from ryu.controller import ofp_event
 from ryu.controller.handler import CONFIG_DISPATCHER
 from ryu.controller.handler import set_ev_cls
@@ -24,6 +26,8 @@ from ryu.app.wsgi import Response
 from ryu.app.wsgi import route
 from ryu.app.wsgi import WSGIApplication
 from ryu.lib import dpid as dpid_lib
+
+import simple_switch_13
 
 simple_switch_instance_name = 'simple_switch_api_app'
 url = '/simpleswitch/mactable/{dpid}'
@@ -75,6 +79,7 @@ class SimpleSwitchRest13(simple_switch_13.SimpleSwitch13):
 
 
 class SimpleSwitchController(ControllerBase):
+    img_html = '<img src="data:image/png;base64,%s"/>'
 
     def __init__(self, req, link, data, **config):
         super(SimpleSwitchController, self).__init__(req, link, data, **config)
@@ -123,8 +128,20 @@ class SimpleSwitchController(ControllerBase):
     def get_pacet_stat(self, req, **kwargs):
         try:
             body = json.dumps(self.simple_switch_app.packet_stat)
-            return Response(content_type='application/json', body=body)
+
+            pkt_types = list(self.simple_switch_app.packet_stat.keys())
+            pkt_nums = list(self.simple_switch_app.packet_stat.values())
+            fig = plt.figure(figsize=(16,9))
+            plt.bar(pkt_types, pkt_nums)
+
+            fig_data = BytesIO()
+            fig.savefig(fig_data, format='png')
+            body = self.img_html % b64encode(fig_data.getvalue()).decode('utf-8').replace(' ','')
+            fig_data.close()
+            return body
+            # return Response(content_type='image/png', body=body)
         except Exception as e:
+            print(e)
             return Response(status=500)
 
 
