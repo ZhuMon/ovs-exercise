@@ -82,6 +82,8 @@ def get_args():
                         type=str, required=False, default='./topology.json')
     parser.add_argument('-c', '--controller', help = 'Path to controller',
                         type=str, required=False, default='./simple_switch_13.py')
+    parser.add_argument('-r', '--remote-controller', help = 'Use remote controller',
+                        action="store_true", default=False)
 
 
     return parser.parse_args()
@@ -89,8 +91,10 @@ def get_args():
 if __name__ == "__main__":
     args = get_args()
     topo = MyTopo(args.topo)
-    net = Mininet(topo, switch=OVSKernelSwitch, controller=Ryu("c0", args.controller))
-    # net = Mininet(topo, switch=OVSKernelSwitch, controller=RemoteController)
+    if args.remote_controller:
+        net = Mininet(topo, switch=OVSKernelSwitch, controller=RemoteController)
+    else:
+        net = Mininet(topo, switch=OVSKernelSwitch, controller=Ryu("c0", args.controller))
 
     net.start()
     for h in net.hosts:
