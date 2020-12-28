@@ -125,7 +125,7 @@ class SimpleSwitchController(ControllerBase):
         return json.dumps(self.simple_switch_app.mac_to_port)
 
     @route("packet_stat", "/stat", methods=['GET'])
-    def get_pacet_stat(self, req, **kwargs):
+    def get_packet_stat(self, req, **kwargs):
         try:
             body = json.dumps(self.simple_switch_app.packet_stat)
 
@@ -146,7 +146,7 @@ class SimpleSwitchController(ControllerBase):
 
     @route("main", "/main", methods=['GET'])
     def get_main(self, req, **kwargs):
-        body = self.get_pacet_stat(req, **kwargs)
+        body = self.get_packet_stat(req, **kwargs)
         html ="<!DOCTYPE html>\r\n" +\
               "<html>\r\n" +\
               "\t<head>" +\
