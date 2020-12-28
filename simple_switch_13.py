@@ -57,7 +57,7 @@ class SimpleSwitch13(app_manager.RyuApp):
         self.add_filter_table(datapath)
         self.apply_filter_table_rules(datapath)
 
-    def add_flow(self, datapath, priority, match, actions, buffer_id=None):
+    def add_flow(self, datapath, priority, match, actions, buffer_id=None, table=FORWARD_TABLE):
         ofproto = datapath.ofproto
         parser = datapath.ofproto_parser
 
@@ -65,10 +65,10 @@ class SimpleSwitch13(app_manager.RyuApp):
                                              actions)]
         if buffer_id:
             mod = parser.OFPFlowMod(datapath=datapath, buffer_id=buffer_id,
-                                    priority=priority, match=match,
+                                    priority=priority, match=match, table_id=table,
                                     instructions=inst)
         else:
-            mod = parser.OFPFlowMod(datapath=datapath, priority=priority,
+            mod = parser.OFPFlowMod(datapath=datapath, priority=priority, table_id=table,
                                     match=match, instructions=inst)
         datapath.send_msg(mod)
 
@@ -90,10 +90,13 @@ class SimpleSwitch13(app_manager.RyuApp):
     def apply_filter_table_rules(self, datapath):
         ofproto = datapath.ofproto
         parser = datapath.ofproto_parser
+
         match = parser.OFPMatch(eth_type=ether_types.ETH_TYPE_IP, ip_proto=in_proto.IPPROTO_TCP)
         mod = parser.OFPFlowMod(datapath=datapath, table_id=FILTER_TABLE,
                                 priority=10000, match=match)
         datapath.send_msg(mod)
+
+
 
     @set_ev_cls(ofp_event.EventOFPPacketIn, MAIN_DISPATCHER)
     def _packet_in_handler(self, ev):
