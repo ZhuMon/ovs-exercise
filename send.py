@@ -23,8 +23,8 @@ def get_if():
 
 def main():
 
-    if len(sys.argv)<3:
-        print 'pass 2 arguments: <destination> "<message>"'
+    if len(sys.argv)<4:
+        print 'pass 2 arguments: <destination> "<message>" <TCP/UDP>'
         exit(1)
 
     addr = socket.gethostbyname(sys.argv[1])
@@ -32,7 +32,10 @@ def main():
 
     print "sending on interface %s to %s" % (iface, str(addr))
     pkt =  Ether(src=get_if_hwaddr(iface), dst='ff:ff:ff:ff:ff:ff')
-    pkt = pkt /IP(dst=addr) / TCP(dport=1234, sport=random.randint(49152,65535)) / sys.argv[2]
+    if sys.argv[3] == 'TCP':
+        pkt = pkt /IP(dst=addr) / TCP(dport=1234, sport=random.randint(49152,65535)) / sys.argv[2]
+    else:
+        pkt = pkt /IP(dst=addr) / UDP(dport=1234, sport=random.randint(49152,65535)) / sys.argv[2]
     pkt.show2()
     sendp(pkt, iface=iface, verbose=False)
 
