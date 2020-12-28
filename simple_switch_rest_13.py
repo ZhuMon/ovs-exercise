@@ -144,4 +144,23 @@ class SimpleSwitchController(ControllerBase):
             print(e)
             return Response(status=500)
 
-
+    @route("main", "/main", methods=['GET'])
+    def get_main(self, req, **kwargs):
+        body = self.get_pacet_stat(req, **kwargs)
+        html ="<!DOCTYPE html>\r\n" +\
+              "<html>\r\n" +\
+              "\t<head>" +\
+              "\t\t<style>" +\
+              "\t\t\timg {width:1000px}" +\
+              "\t\t</style>" +\
+              "\t</head>" +\
+              "\t<body  id='container' onload = 'javascript:AutoRefresh();'>\r\n" +\
+              "\t\t<h1>OVS-Exercise</h1>\r\n" + "<div>" + body + "</div>" +\
+              "\t</body>\r\n" +\
+              "\r\n" +\
+              "\t<script type='text/javascript'>\r\n" +\
+              "\t\tsetInterval(AutoRefresh, 200);" +\
+              "\t\tfunction AutoRefresh(){var xhttp = new XMLHttpRequest();xhttp.onreadystatechange = function() {if (this.readyState == 4 && this.status == 200) {document.getElementById('container').innerHTML = this.responseText;}};xhttp.open('GET', './main', true);xhttp.send();}\r\n" +\
+              "\t</script>\r\n" +\
+              "</html>"
+        return html
