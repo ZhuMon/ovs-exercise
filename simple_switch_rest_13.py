@@ -159,7 +159,7 @@ class SimpleSwitchController(ControllerBase):
               "\t</body>\r\n" +\
               "\r\n" +\
               "\t<script type='text/javascript'>\r\n" +\
-              "\t\tsetInterval(AutoRefresh, 200);" +\
+              "\t\tsetInterval(AutoRefresh, 1000);" +\
               "\t\tfunction AutoRefresh(){var xhttp = new XMLHttpRequest();xhttp.onreadystatechange = function() {if (this.readyState == 4 && this.status == 200) {document.getElementById('container').innerHTML = this.responseText;}};xhttp.open('GET', './main', true);xhttp.send();}\r\n" +\
               "\t</script>\r\n" +\
               "</html>"
