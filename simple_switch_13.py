@@ -19,8 +19,12 @@ from ryu.controller.handler import CONFIG_DISPATCHER, MAIN_DISPATCHER
 from ryu.controller.handler import set_ev_cls
 from ryu.ofproto import ofproto_v1_3
 from ryu.lib.packet import in_proto
+from ryu.lib.packet import ether_types
 
 from scapy.all import *
+
+FILTER_TABLE = 5
+FORWARD_TABLE = 10
 
 class SimpleSwitch13(app_manager.RyuApp):
     OFP_VERSIONS = [ofproto_v1_3.OFP_VERSION]
@@ -48,6 +52,11 @@ class SimpleSwitch13(app_manager.RyuApp):
                                           ofproto.OFPCML_NO_BUFFER)]
         self.add_flow(datapath, 0, match, actions)
 
+        # adding default tables/rules in the startup
+        self.add_default_table(datapath)
+        self.add_filter_table(datapath)
+        self.apply_filter_table_rules(datapath)
+
     def add_flow(self, datapath, priority, match, actions, buffer_id=None):
         ofproto = datapath.ofproto
         parser = datapath.ofproto_parser
@@ -61,6 +70,29 @@ class SimpleSwitch13(app_manager.RyuApp):
         else:
             mod = parser.OFPFlowMod(datapath=datapath, priority=priority,
                                     match=match, instructions=inst)
+        datapath.send_msg(mod)
+
+    def add_default_table(self, datapath):
+        ofproto = datapath.ofproto
+        parser = datapath.ofproto_parser
+        inst = [parser.OFPInstructionGotoTable(FILTER_TABLE)]
+        mod = parser.OFPFlowMod(datapath=datapath, table_id=0, instructions=inst)
+        datapath.send_msg(mod)
+
+    def add_filter_table(self, datapath):
+        ofproto = datapath.ofproto
+        parser = datapath.ofproto_parser
+        inst = [parser.OFPInstructionGotoTable(FORWARD_TABLE)]
+        mod = parser.OFPFlowMod(datapath=datapath, table_id=FILTER_TABLE, 
+                                priority=1, instructions=inst)
+        datapath.send_msg(mod)
+
+    def apply_filter_table_rules(self, datapath):
+        ofproto = datapath.ofproto
+        parser = datapath.ofproto_parser
+        match = parser.OFPMatch(eth_type=ether_types.ETH_TYPE_IP, ip_proto=in_proto.IPPROTO_TCP)
+        mod = parser.OFPFlowMod(datapath=datapath, table_id=FILTER_TABLE,
+                                priority=10000, match=match)
         datapath.send_msg(mod)
 
     @set_ev_cls(ofp_event.EventOFPPacketIn, MAIN_DISPATCHER)
@@ -115,7 +147,17 @@ class SimpleSwitch13(app_manager.RyuApp):
 
         # install a flow to avoid packet_in next time
         if out_port != ofproto.OFPP_FLOOD:
-            match = parser.OFPMatch(in_port=in_port, eth_dst=dst, eth_src=src)
+
+            # check IP Protocol and create a match for IP
+            if ether_type == 'IPv4':
+                srcip = pkt[IP].src
+                dstip = pkt[IP].dst
+                match = parser.OFPMatch(eth_type=pkt[Ether].type,
+                                        ipv4_src=srcip,
+                                        ipv4_dst=dstip
+                                        )
+            else:
+                match = parser.OFPMatch(in_port=in_port, eth_dst=dst, eth_src=src)
             # verify if we have a valid buffer_id, if yes avoid to send both
             # flow_mod & packet_out
             if msg.buffer_id != ofproto.OFP_NO_BUFFER:
