@@ -1,6 +1,3 @@
-PCAP_DIR = pcaps
-LOG_DIR = logs
-
 TOPO = topology.json
 CONTROLLER = simple_switch_rest_13.py
 
