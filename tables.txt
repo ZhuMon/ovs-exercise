@@ -2,7 +2,7 @@
 table=0,actions=resubmit(,5)
 
 #table 5 - Pass Through 2
-table=5,priority=10000,tcp,actions=drop
+table=5,priority=10000,udp,actions=drop
 table=5,priority=1,actions=resubmit(,10)
 
 #table 10 - Access Control
